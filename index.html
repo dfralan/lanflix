@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎬 Mis Videos</title>
+  <style>
+    body {
+    margin: 0;
+    background-color: #000;
+    color: #fff;
+    font-family: sans-serif;
+    text-align: center;
+  }
+
+  #debug-log {
+    background-color: #1a1a1a;
+    color: #DB202C;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 14px;
+    text-align: left;
+    border-bottom: 2px solid #DB202C;
+  }
+
+  header {
+    background-color: #111;
+    padding: 1rem;
+    font-size: 2rem;
+    color: #DB202C;
+  }
+
+  main {
+    padding: 2rem;
+  }
+
+  .list-header {
+    color: #ccc;
+    border-bottom: 1px solid #333;
+    padding-bottom: 0.5rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+  }
+
+  video {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    margin-top: 2rem;
+    background-color: #111;
+  }
+
+  footer {
+    margin-top: 3rem;
+    font-size: 0.8rem;
+    color: #666;
+  }
+
+  .video-button {
+    display: block;
+    padding: 0.5rem;
+    margin: 1rem auto;
+    max-width: 90%;
+    background-color: #222;
+    border: 2px solid #DB202C;
+    color: #DB202C;
+    border-radius: 10px;
+    text-decoration: none;
+    text-align: left;
+    overflow: hidden;
+    zoom: 1;
+  }
+
+  .video-button:hover,
+  .video-button:focus {
+    background-color: #DB202C;
+    color: #000;
+  }
+
+  .video-thumbnail {
+    float: left;
+    height: 90px;
+    width: 60px;
+    margin-right: 1rem;
+    border-radius: 5px;
+    background-color: #111;
+  }
+
+  .video-title {
+    font-size: 1.4rem;
+    display: block;
+    padding-top: 0.5rem;
+    padding-left: 0.5rem;
+  }
+
+  /* Clear float */
+  .video-button::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+  </style>
+</head>
+<body>
+  <div id="debug-log">Debug Log Activado...<br></div>
+  <header>
+    <svg width="300" viewBox="0 0 706 187" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M29.5 151L74.5 148V179.739L0 186.348V0H29.5V151Z" fill="#DB202C"/>
+      <path d="M476.5 140.5L523 144.5V174.837L446.5 172.127V0H476.5V140.5Z" fill="#DB202C"/>
+      <path d="M633.5 0C635.789 7.94455 642.751 26.8018 651.864 50.499L674 0H704C694.547 21.6984 680.424 54.4374 666.342 87.6738C682.101 127.737 694.412 158.365 706 186.877L673.5 184.167L650.61 125.087C637.924 155.535 633.38 165.627 628 180.789L595.5 178.671L635.916 86.8838L602.5 0H633.5Z" fill="#DB202C"/>
+      <path d="M576 177.519L547.5 175.995V0H576V177.519Z" fill="#DB202C"/>
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M203 172.924L170.5 174.186L164.5 140.5L129 141.5L123.5 176.546L91.5 178.541L128 0H165.5L203 172.924ZM135 112.5H159L146 51.5L135 112.5Z" fill="#DB202C"/>
+      <path d="M290.5 99.5V0H318.5V170.709L286 170.987L250.5 75V171.596L221 172.35V0H253L290.5 99.5Z" fill="#DB202C"/>
+      <path d="M426 28H378.5V72.5H415V102H378.5V170.881L347 170.681V0H426V28Z" fill="#DB202C"/>
+    </svg>
+  </header>
+  <main>
+    <div id="video-list">Cargando videos...</div>
+    <video id="video-player" controls style="display:none;"></video>
+  </main>
+  <footer>TV Player · Netcast Compatible</footer>
+
+  <script>
+    var videoListDiv = document.getElementById('video-list');
+    var videoPlayer = document.getElementById('video-player');
+    var debugLogDiv = document.getElementById('debug-log');
+    var localFilesFound = false;
+
+    function logToScreen(message) { if (debugLogDiv) { debugLogDiv.innerHTML += message + '<br>'; } }
+
+    function playVideoFullscreen(videoUrl) {
+      videoPlayer.src = videoUrl;
+      videoPlayer.style.display = 'block';
+      videoListDiv.style.display = 'none';
+      videoPlayer.play();
+      if (videoPlayer.requestFullscreen) { videoPlayer.requestFullscreen(); } 
+      else if (videoPlayer.webkitRequestFullscreen) { videoPlayer.webkitRequestFullscreen(); } 
+      else if (videoPlayer.mozRequestFullScreen) { videoPlayer.mozRequestFullScreen(); } 
+      else if (videoPlayer.msRequestFullscreen) { videoPlayer.msRequestFullscreen(); }
+    }
+    
+    function createListHeader(title) {
+      var header = document.createElement('h3');
+      header.className = 'list-header';
+      header.textContent = title;
+      videoListDiv.appendChild(header);
+    }
+
+    function createVideoButton(text, url, identifier) {
+      var btn = document.createElement('a');
+      btn.href = '#';
+      btn.className = 'video-button';
+      btn.setAttribute('title', text);
+      btn.onclick = function(e) { e.preventDefault(); playVideoFullscreen(url); };
+      
+      var img = document.createElement('img');
+      img.className = 'video-thumbnail';
+
+      if (identifier) {
+        img.src = 'http://archive.org/services/img/' + identifier;
+        img.onerror = function() { this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 75'%3E%3Crect width='50' height='75' fill='%23111'/%3E%3Ctext x='50%25' y='50%25' fill='%23333' font-size='10' text-anchor='middle' dominant-baseline='middle'%3EError%3C/text%3E%3C/svg%3E"; };
+      } else {
+        img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 75'%3E%3Crect width='50' height='75' fill='%23111'/%3E%3Ctext x='50%25' y='50%25' fill='%2300ff99' font-size='30' text-anchor='middle' dominant-baseline='middle'%3E▶%3C/text%3E%3C/svg%3E";
+      }
+
+      var titleSpan = document.createElement('span');
+      titleSpan.className = 'video-title';
+      titleSpan.textContent = text;
+      
+      btn.appendChild(img);
+      btn.appendChild(titleSpan);
+      videoListDiv.appendChild(btn);
+    }
+
+    function fetchLocalMovies() {
+      logToScreen("Buscando archivos locales...");
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'localMovies/', true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200 || xhr.status === 0) {
+            var response = xhr.responseText;
+            var matches = response.match(/href="([^"]+\.mp4)"/gi);
+            var files = [];
+            if (matches) { for (var j = 0; j < matches.length; j++) { files.push(matches[j].match(/href="([^"]+)"/)[1]); } }
+            
+            if (files.length > 0) {
+              logToScreen("Archivos locales encontrados: " + files.length);
+              localFilesFound = true;
+              createListHeader('🎬 Archivos Locales');
+              for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                var videoUrl = 'localMovies/' + file;
+                createVideoButton("▶️ " + file, videoUrl, null); // null para el identificador
+              }
+            } else { logToScreen("No se encontraron archivos .mp4 locales."); }
+          } else { logToScreen("Error al buscar archivos locales. Status: " + xhr.status); }
+          fetchArchiveMovies();
+        }
+      };
+      xhr.onerror = function() { logToScreen("Error de red al buscar locales."); fetchArchiveMovies(); };
+      xhr.send();
+    }
+
+    function fetchArchiveMovies() {
+      logToScreen("Iniciando búsqueda en Archive.org...");
+      var archiveApiUrl = 'http://archive.org/advancedsearch.php?q=collection%3Afeature_films+AND+mediatype%3Amovies+AND+format%3A%22MPEG4%22&fl%5B%5D=identifier&fl%5B%5D=title&sort%5B%5D=downloads+desc&rows=50&page=1&output=json';
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', archiveApiUrl, true);
+      xhr.onreadystatechange = function() {
+        logToScreen("Archive.org -> Estado: " + xhr.readyState + ", Status: " + xhr.status);
+        var archiveFilesFound = false;
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            logToScreen("Conexión con Archive.org exitosa. Procesando...");
+            try {
+              var data = JSON.parse(xhr.responseText);
+              var movies = data.response.docs;
+              if (movies.length > 0) {
+                archiveFilesFound = true;
+                createListHeader('🌐 Películas de Archive.org');
+                for (var i = 0; i < movies.length; i++) {
+                  var movie = movies[i];
+                  var identifier = movie.identifier;
+                  var title = movie.title || identifier;
+                  var videoUrl = 'http://archive.org/download/' + identifier + '/' + identifier + '.mp4';
+                  createVideoButton("🌍 " + title, videoUrl, identifier);
+                }
+                logToScreen("Películas de Archive.org cargadas.");
+              }
+            } catch (e) { logToScreen("Error al procesar JSON de Archive.org."); }
+          } else { logToScreen("Fallo la conexión con Archive.org. Status final: " + xhr.status); }
+        }
+        if (xhr.readyState === 4 && !localFilesFound && !archiveFilesFound) { videoListDiv.innerHTML = '<p>No se encontraron videos.</p>'; }
+      };
+      xhr.onerror = function() { logToScreen("Error de RED general al conectar con Archive.org."); };
+      xhr.send();
+    }
+    
+    function onFullScreenChange() {
+        var fsElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+        if (!fsElement) {
+            videoPlayer.pause();
+            videoPlayer.style.display = 'none';
+            videoListDiv.style.display = 'block';
+        }
+    }
+
+    document.addEventListener('fullscreenchange', onFullScreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullScreenChange);
+    document.addEventListener('mozfullscreenchange', onFullScreenChange);
+    document.addEventListener('MSFullscreenChange', onFullScreenChange);
+    document.addEventListener('keydown', function(e) {
+      if (e.key === "Escape" || e.keyCode === 27) {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+        else if (document.msExitFullscreen) document.msExitFullscreen();
+      }
+    });
+
+    videoListDiv.innerHTML = '';
+    fetchLocalMovies();
+  </script>
+</body>
+</html>
