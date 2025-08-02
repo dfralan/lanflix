@@ -6,6 +6,7 @@
 
 💡 100% offline · No accounts · No external access · Pure HTML5 + LAN only
 
+![Logo](preview.png)
 
 ## 🚀 Features
 
